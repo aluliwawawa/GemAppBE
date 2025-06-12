@@ -1,28 +1,26 @@
 #!/bin/bash
 
-# 设置工作目录
-cd /gemapp
+# 设置 Python 路径
+PYTHON_BIN=/usr/local/bin/python3.7
 
-# 打印当前目录
-echo "Current directory: $(pwd)"
+# 切换到项目目录
+cd /gemapp || exit 1
 
-# 检查Python版本
-echo "Python version:"
-python3 --version
+# 打印 Python 版本
+echo "使用 Python: $PYTHON_BIN"
+$PYTHON_BIN --version
 
-# 检查pip版本
-echo "Pip version:"
-pip3 --version
+# 启动 Flask 应用
+echo "启动 Flask..."
+nohup $PYTHON_BIN app.py > flask.log 2>&1 &
 
-# 检查已安装的包
-echo "Installed packages:"
-pip3 list
+# 稍等 2 秒以确保 Flask 启动
+sleep 2
 
-# 设置环境变量
-export FLASK_APP=app.py
-export FLASK_ENV=development
-export FLASK_DEBUG=1
-
-# 启动Flask应用
-echo "Starting Flask application..."
-/usr/local/bin/python3.7 -m flask run --host=0.0.0.0 --port=5000 --debugger
+# 检查端口是否已监听
+if netstat -tulpn | grep 5000 > /dev/null; then
+    echo "✅ Flask 成功运行中"
+else
+    echo "❌ Flask 启动失败，日志如下："
+    tail -n 30 flask.log
+fi
